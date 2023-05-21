@@ -9,7 +9,7 @@ show_menu() {
   local PS3="Choose a function to execute: "
 
   select opt in "${options[@]}"; do
-    if [[ -n $opt ]]; then
+    if [[ "${options[*]}" =~ (^|[[:space:]])"$opt"($|[[:space:]]) ]]; then
       echo "Executing $opt..."
       # remove color codes
       opt=$(echo "$opt" | sed -r 's/\x1B\[[0-9;]*[JKmsu]//g')
@@ -23,17 +23,19 @@ show_menu() {
 
 parse_docstring() {
   # grep -oP "(?<=^# )[^\n]+"
-  echo "$(grep -A1 -P "^exe_$1" "$0" | tail -n1)"
+  echo "$(grep -A2 -P "^exe_$1[ \(]" "$0" | tail -n2 | head -n1)"
 }
 
 exe_example_function() {
-  # This is an example function
-  echo "Hello, World!"
+  # swib slibbles
+  # $1 - The first argument
+  echo "Hello, $1!"
 }
 
 exe_example_function2() {
   # This is another example function
-  echo "Hello, World!"
+  # $1 - The test value
+  echo "The test value is: $1"
 }
 
 if [[ $# -eq 0 ]]; then
@@ -53,3 +55,14 @@ else
     exit 1
   fi
 fi
+run_tests() {
+  source "./tests.bash"
+  test_parse_docstring_no_docstring
+  test_show_menu_invalid_option
+  test_unknown_function
+  test_show_menu
+  test_parse_funs
+  test_parse_docstring_two
+  test_show_menu_two
+}
+# run_tests
